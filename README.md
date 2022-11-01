@@ -128,6 +128,18 @@ command line argument value as necessary. For example, if you have an 8-core
 machine and you wish to schedule ghOSt tasks on all cores, then pass `0-7` to
 `--ghost_cpus`.
 
+To run the CFS scheduler with unfair preemption, build the cfs_scheduler
+
+```
+bazel build -c opt agent_cfs
+```
+
+To run the agent, use the following command, and specify the spec file if any
+```
+bazel-bin/agent_cfs --ghost_cpus 0-1 --spec_file specfile.spec 
+```
+
+
 4. Launch `simple_exp`:
 ```
 bazel-bin/simple_exp
