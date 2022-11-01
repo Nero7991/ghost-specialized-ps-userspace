@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "bpf/user/agent.h"
 
 #include "absl/strings/match.h"
 #include "absl/time/clock.h"
@@ -215,7 +216,27 @@ void CfsScheduler::TaskBlocked(CfsTask* task, const Message& msg) {
 
 void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   const ghost_msg_payload_task_preempt* payload =
-      static_cast<const ghost_msg_payload_task_preempt*>(msg.payload());
+  static_cast<const ghost_msg_payload_task_preempt*>(msg.payload());
+  Cpu cpu = topology()->cpu(task->cpu);
+  CHECK(task->oncpu());
+
+  RunRequest* req = enclave()->GetRunRequest(cpu);
+  StatusWord::BarrierToken agent_barrier =task->status_word.barrier();
+
+  if(task->preemptrefusecount){
+    printf("Process:%d will not evict the CPU\n",task->gtid.tid());
+    task->preemptrefusecount--;
+    task->wontevictuntil=absl::GetCurrentTimeNanos()+10000;
+    return;
+  } 
+  
+  if(task->wontevictuntil>absl::GetCurrentTimeNanos()) {
+    req->LocalYield(agent_barrier, /*flags=*/0);
+    CHECK(req->Commit());
+     return;
+  }
+  printf("Process:%d allowed itself to be evicted\n",task->gtid.tid());
+
 
   TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
 
@@ -261,6 +282,9 @@ void CfsScheduler::CfsSchedule(const Cpu& cpu,
                                bool prio_boost) {
   CpuState* cs = cpu_state(cpu);
   CfsTask* next = nullptr;
+  if(cs->current!=nullptr){
+    return;
+  }
 
   CHECK_EQ(cs->current, nullptr);
 
@@ -398,7 +422,7 @@ CfsTask* CfsRq::PickNextTask() {
   // need to catch up to other tasks that have accummulated a large runtime.
   // For easy access, we cache the value.
   if (!rq_.empty()) {
-    CHECK_GE((*rq_.begin())->vruntime, min_vruntime_);
+   // CHECK_GE((*rq_.begin())->vruntime, min_vruntime_);
     min_vruntime_ = (*rq_.begin())->vruntime;
   } else {
     min_vruntime_ = absl::ZeroDuration();

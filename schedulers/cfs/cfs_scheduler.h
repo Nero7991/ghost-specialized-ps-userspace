@@ -69,6 +69,10 @@ struct CfsTask : public Task<> {
   CfsTaskState run_state = CfsTaskState::kBlocked;
   int cpu = -1;
 
+  int preemptrefusecount=1;
+  int64_t wontevictuntil=0;
+
+
   // Whether the last execution was preempted or not.
   bool preempted = false;
 

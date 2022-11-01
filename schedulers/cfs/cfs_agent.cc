@@ -24,6 +24,7 @@
 #include "schedulers/cfs/cfs_scheduler.h"
 
 ABSL_FLAG(std::string, ghost_cpus, "1-5", "cpulist");
+ABSL_FLAG(std::string, spec_file, "specfile.spec", "specfile");
 ABSL_FLAG(std::string, enclave, "", "Connect to preexisting enclave directory");
 
 namespace ghost {
@@ -44,6 +45,10 @@ static void ParseAgentConfig(AgentConfig* config) {
   }
 }
 
+static void printcmdArgs(std::vector<char*> cmds){
+  printf("Printing cmd args for specfile:%s",absl::GetFlag(FLAGS_spec_file).c_str());
+}
+
 }  // namespace ghost
 
 int main(int argc, char* argv[]) {
@@ -51,7 +56,8 @@ int main(int argc, char* argv[]) {
 
   // Override default value of the verbose flag while in active development.
   ghost::set_verbose(1);
-  absl::ParseCommandLine(argc, argv);
+  std::vector<char*> cmdargs=absl::ParseCommandLine(argc, argv);
+  ghost::printcmdArgs(cmdargs);
 
   ghost::AgentConfig config;
   ghost::ParseAgentConfig(&config);
