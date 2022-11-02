@@ -56,6 +56,13 @@ individual targets rather than all of them to save compile time, replace `...`
 with an individual target name, such as `agent_shinjuku`.
 
 ---
+### LKP Project work metrics code
+
+- `python/`
+  - The collect_metrics.py program prints the number of sys_read and sys_write calls per second made 
+    by the mysql application
+
+
 
 ### ghOSt Project Layout
 
