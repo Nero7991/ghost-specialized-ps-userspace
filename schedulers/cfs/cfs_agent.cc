@@ -21,6 +21,7 @@
 #include "absl/flags/parse.h"
 #include "lib/agent.h"
 #include "lib/enclave.h"
+#include "lib/metrics.h"
 #include "schedulers/cfs/cfs_scheduler.h"
 
 ABSL_FLAG(std::string, ghost_cpus, "1-5", "cpulist");

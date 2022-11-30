@@ -49,6 +49,9 @@ for i, syscall in enumerate(syscalls):
     # print(progs[i])
 
 last_time = 0
+calls_by_pid={}
+calls_by_task_pid={}
+# calls_by_task={}
 # format output
 try:
     while 1:
@@ -62,18 +65,61 @@ try:
                     # check if this trace belongs to process of interest
                     if((name in process_location[0]) and syscalls[i] in msg):
                         calls[i]+=1
+                        pid_dict={}
+                        calls_by_task={}
+                        task_dict={}
+
+
+                        if pid in calls_by_pid:
+                            pid_dict=calls_by_pid[pid]
+                        else:
+                            calls_by_pid[pid]=pid_dict
+                        
+                        if syscalls[i] in pid_dict:
+                            pid_dict[syscalls[i]]+=1
+                        else:
+                            pid_dict[syscalls[i]]=0
+
+
+                        if pid in calls_by_task_pid:
+                            calls_by_task=calls_by_task_pid[pid]
+                        else:
+                             calls_by_task_pid[pid]=calls_by_task
+
+                        if task in calls_by_task:
+                            task_dict=calls_by_task[task]
+                        else:
+                            calls_by_task[task]=task_dict
+
+                        if syscalls[i] in task_dict:
+                            task_dict[syscalls[i]]+=1
+                        else:
+                            task_dict[syscalls[i]]=0
+                        
+
             except Exception as e:
-                #print(e)
+                # print(e)
                 continue
         
         if(time.time() - last_time > 1):
             textbuf = name + "\n"
             for i, syscall in enumerate(syscalls):
                 if(calls[i] > thresholds[i]):
-                    textbuf += syscall + "," + str(calls[i]) + ",1\n"
+                    textbuf += "ALL,"+syscall + "," + str(calls[i]) + ",1\n"
                 else:
-                    textbuf += syscall + "," + str(calls[i]) + ",0\n"
+                    textbuf += "ALL,"+syscall + "," + str(calls[i]) + ",0\n"
                 calls[i] = 0
+            for pid, pid_map in calls_by_pid.items():
+                for syscall,call_count in pid_map.items():
+                    textbuf += "PID,"+str(pid) +","+syscall + "," + str(call_count) + "\n"
+            calls_by_pid={}
+
+            for pid,calls_by_task in calls_by_task_pid.items():
+                for task, task_map in calls_by_task.items():
+                    for syscall,call_count in task_map.items():
+                        textbuf += "TASK,"+str(pid)+","+str(task) +","+syscall + "," + str(call_count) + "\n"
+            calls_by_task_pid={}
+
             print(textbuf)
             f = open("../metrics/"+ name + ".csv", "w")
             f.write(textbuf)
