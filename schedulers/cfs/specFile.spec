@@ -1,4 +1,6 @@
-name,mysql
-write,5
-read,5
-futex,150
+name,simple_exp
+write,0
+read,1
+futex,1
+getpid,1
+gettimeofday,1

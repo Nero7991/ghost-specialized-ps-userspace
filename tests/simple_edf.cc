@@ -174,6 +174,7 @@ void BusyExpRunFor(const std::unique_ptr<PrioTable> &table_,
         new GhostThread(GhostThread::KernelScheduler::kGhost, [&] {
           // Time start = Now();
           // while (Now() - start < d) {}
+          printf("%d",getpid());
           SpinFor(d);
         }));
   }

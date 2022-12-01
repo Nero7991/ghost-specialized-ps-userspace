@@ -6,7 +6,6 @@
 #include "absl/synchronization/barrier.h"
 #include "lib/base.h"
 #include "lib/ghost.h"
-
 // A series of simple tests for ghOSt schedulers.
 
 namespace ghost {
@@ -23,6 +22,7 @@ struct ScopedTime {
 void SimpleExp() {
   printf("\nStarting simple worker\n");
   GhostThread t(GhostThread::KernelScheduler::kGhost, [] {
+    printf("%d",getpid());
     fprintf(stderr, "hello world!\n");
     absl::SleepFor(absl::Milliseconds(10));
     fprintf(stderr, "fantastic nap!\n");
@@ -85,6 +85,7 @@ void BusyExpRunFor(int num_threads, absl::Duration d) {
         new GhostThread(GhostThread::KernelScheduler::kGhost, [&] {
           // Time start = Now();
           // while (Now() - start < d) {}
+          getpid();
           SpinFor(d);
         }));
   }

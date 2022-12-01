@@ -18,6 +18,8 @@ class Metrics{
     std::unordered_map<int,std::unordered_map<std::string,int>> pid_metrics;
     // std::unordered_map<int,std::unordered_map<std::string,std::unordered_map<std::string,int>>> pid_task_metrics;
     std::unordered_map<int,bool> allow_preemption;
+
+    std::unordered_map<int,int64_t> pid_metric_staleness;
     bool general_preemption=true;
     std::vector<std::string> syscalls;
 
@@ -74,8 +76,9 @@ class Metrics{
             }
 
             bool compute_preempt_by_state(std::unordered_map<std::string,int> syscall_count){
+                
                 for (auto& it: syscalls) {
-                    if(specs[it]>syscall_count[it]){
+                    if(specs[it]<=syscall_count[it]){
                         return false;
                     }
                 }
@@ -86,6 +89,10 @@ class Metrics{
                     general_preemption=compute_preempt_by_state(all_metrics);
                     for (auto& it: pid_metrics) {
                         allow_preemption[it.first]=compute_preempt_by_state(pid_metrics[it.first]);
+                        if(!allow_preemption[it.first] && pid_metric_staleness[it.first]>absl::GetCurrentTimeNanos()){
+                            // printf("Preemption to be refused for: %d\n",it.first);
+                        }
+                        // The allowance of preemption goes stale after 10000 ns
                     }
             }
 
@@ -93,7 +100,14 @@ class Metrics{
                 if(allow_preemption.find(pid)==allow_preemption.end()){
                     return true;
                 }
-                return allow_preemption[pid];
+                if(pid_metric_staleness[pid]>absl::GetCurrentTimeNanos()){
+                        if(!allow_preemption[pid]){
+                            // printf("Preemption refused for %d",pid);
+                        }
+                         return allow_preemption[pid];
+                } else{
+                    return true;
+                }
             }
 
             void all_metrics_read(std::string metrics){
@@ -117,6 +131,7 @@ class Metrics{
                                         pid_metrics[pid]=syscall_count_by_pid;
                                     }
                                     pid_metrics[pid][tokens[2]]=std::stoi(tokens[3]);
+                                    pid_metric_staleness[pid]= absl::GetCurrentTimeNanos()+1000000000000;
                                 }
                             }
                             infile.close();
@@ -134,23 +149,23 @@ class Metrics{
                         void update_metrics(){
 
                                 all_metrics_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
-                                for (auto& it: specs) {
-                                    //cout << it.first.c_str()<<it.second<<endl;
-                                    printf("%s : %d", it.first.c_str(), it.second);
-                                }
-                                for(auto& it:all_metrics){
-                                    //cout<<it.first.c_str()<<" value "<<it.second<<endl;
-                                    printf("%s value: %d", it.first.c_str(), it.second);
-                                }
+                                // for (auto& it: specs) {
+                                //     //cout << it.first.c_str()<<it.second<<endl;
+                                //     printf("%s : %d", it.first.c_str(), it.second);
+                                // }
+                                // for(auto& it:all_metrics){
+                                //     //cout<<it.first.c_str()<<" value "<<it.second<<endl;
+                                //     printf("%s value: %d", it.first.c_str(), it.second);
+                                // }
 
-                                for(auto& it:pid_metrics){
-                                    std::unordered_map<std::string,int> pid_metric_val=it.second;
-                                    for(auto& it2:pid_metric_val){
-                                                //cout<<"PID:"<<it.first.c_str()<<" : "<<it2.first<<" :"<<it2.second<<endl;
-                                            printf("PID %d : %s : %d", it.first, it2.first.c_str(), it2.second);
+                                // for(auto& it:pid_metrics){
+                                //     std::unordered_map<std::string,int> pid_metric_val=it.second;
+                                //     for(auto& it2:pid_metric_val){
+                                //                 //cout<<"PID:"<<it.first.c_str()<<" : "<<it2.first<<" :"<<it2.second<<endl;
+                                //             printf("PID %d : %s : %d", it.first, it2.first.c_str(), it2.second);
 
-                                    }
-                                }
+                                //     }
+                                // }
 
                         }
             };
