@@ -26,6 +26,7 @@
 
 #include "absl/time/time.h"
 #include "lib/agent.h"
+#include "lib/metrics.h"
 #include "lib/scheduler.h"
 #include "shared/prio_table.h"
 
@@ -44,6 +45,7 @@ enum class CfsTaskState {
 std::ostream& operator<<(std::ostream& os, const CfsTaskState& state);
 
 struct CfsTask : public Task<> {
+  bool prio_boost=false;
   explicit CfsTask(Gtid d_task_gtid, ghost_sw_info sw_info)
       : Task<>(d_task_gtid, sw_info), vruntime(absl::ZeroDuration()) {}
   ~CfsTask() override {}
@@ -63,6 +65,12 @@ struct CfsTask : public Task<> {
   // function as a template parameter. Technically, this doesn't have to be
   // inside of the struct, but it seems logical to keep this here.
   static inline bool Less(CfsTask* a, CfsTask* b) {
+    if(a->prio_boost){
+      return true;
+    }
+    if(b->prio_boost){
+      return false;
+    }
     return a->vruntime < b->vruntime;
   }
 
@@ -104,6 +112,7 @@ class CfsRq {
   // Caller must ensure that 'task' is on the runqueue in the first place
   // (e.g. via task->queued()).
   void Erase(CfsTask* task);
+  void BoostedInsert(CfsTask *task);
 
   size_t Size() const {
     absl::MutexLock lock(&mu_);
@@ -125,6 +134,8 @@ class CfsRq {
 
 class CfsScheduler : public BasicDispatchScheduler<CfsTask> {
  public:
+  Metrics metrics;
+  
   explicit CfsScheduler(Enclave* enclave, CpuList cpulist,
                         std::shared_ptr<TaskAllocator<CfsTask>> allocator);
   ~CfsScheduler() final {}

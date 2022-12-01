@@ -31,9 +31,21 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "lib/logging.h"
+#include "lib/metrics.h"
 #include "lib/topology.h"
+#include <thread>
+#include <chrono>
+
 
 namespace ghost {
+
+void keepmetricsupdated(Metrics *metrics){
+  while(1){
+    printf("Nice sleep");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100000));
+  }
+}
 
 CfsScheduler::CfsScheduler(Enclave* enclave, CpuList cpulist,
                            std::shared_ptr<TaskAllocator<CfsTask>> allocator)
@@ -49,6 +61,11 @@ CfsScheduler::CfsScheduler(Enclave* enclave, CpuList cpulist,
       default_channel_ = cs->channel.get();
     }
   }
+  metrics.init_metrics();
+  std::thread (ghost::keepmetricsupdated, &metrics).detach();
+  printf("FeelsGood");
+
+
 }
 
 void CfsScheduler::DumpAllTasks() {
@@ -220,29 +237,33 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   Cpu cpu = topology()->cpu(task->cpu);
   CHECK(task->oncpu());
 
-  RunRequest* req = enclave()->GetRunRequest(cpu);
-  StatusWord::BarrierToken agent_barrier =task->status_word.barrier();
+  // RunRequest* req = enclave()->GetRunRequest(cpu);
+  // StatusWord::BarrierToken agent_barrier =task->status_word.barrier();
 
+  task->preempted = true;
   if(task->preemptrefusecount){
     printf("Process:%d will not evict the CPU\n",task->gtid.tid());
     task->preemptrefusecount--;
     task->wontevictuntil=absl::GetCurrentTimeNanos()+10000;
-    return;
+    // req->LocalYield(agent_barrier, /*flags=*/0);
+    // CHECK(req->Commit());
   } 
   
   if(task->wontevictuntil>absl::GetCurrentTimeNanos()) {
-    req->LocalYield(agent_barrier, /*flags=*/0);
-    CHECK(req->Commit());
-     return;
+    printf("Here?");
+    // req->LocalYield(agent_barrier, /*flags=*/0);
+    // CHECK(req->Commit());
+      TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
+      CpuState* cs = cpu_state_of(task);
+      task->prio_boost=true;
+      cs->run_queue.PutPrevTask(task);
+  } 
+  else {
+        printf("Process:%d allowed itself to be evicted\n",task->gtid.tid());
+        TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
+        CpuState* cs = cpu_state_of(task);
+        cs->run_queue.PutPrevTask(task);
   }
-  printf("Process:%d allowed itself to be evicted\n",task->gtid.tid());
-
-
-  TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
-
-  task->preempted = true;
-  CpuState* cs = cpu_state_of(task);
-  cs->run_queue.PutPrevTask(task);
 
   if (payload->from_switchto) {
     Cpu cpu = topology()->cpu(payload->cpu);
@@ -386,6 +407,7 @@ void CfsRq::EnqueueTask(CfsTask* task) {
   task->vruntime = std::max(min_vruntime_, task->vruntime);
 
   rq_.insert(task);
+  task->prio_boost=false;
 }
 
 void CfsRq::PutPrevTask(CfsTask* task) {
@@ -430,6 +452,15 @@ CfsTask* CfsRq::PickNextTask() {
   return task;
 }
 
+void CfsRq::BoostedInsert(CfsTask *task){
+  CHECK_GE(task->cpu, 0);
+  CHECK_EQ(task->run_state, CfsTaskState::kRunnable);
+  CHECK_EQ(task->run_state, CfsTaskState::kQueued);
+  task->run_state = CfsTaskState::kQueued;
+  task->prio_boost=true;
+  absl::MutexLock lock(&mu_);
+  rq_.insert(task);
+}
 void CfsRq::Erase(CfsTask* task) {
   CHECK_EQ(task->run_state, CfsTaskState::kQueued);
   absl::MutexLock lock(&mu_);

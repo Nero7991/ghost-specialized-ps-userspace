@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
   ghost::ParseAgentConfig(&config);
 
   printf("\nInitializing...\n");
-  print_metrics();
+  // ghost::Metrics metrics;
+  // metrics.print_metrics();
   // Using new so we can destruct the object before printing Done
   auto uap = new ghost::AgentProcess<ghost::FullCfsAgent<ghost::LocalEnclave>,
                                      ghost::AgentConfig>(config);
