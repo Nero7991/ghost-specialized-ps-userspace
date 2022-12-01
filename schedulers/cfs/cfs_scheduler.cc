@@ -42,7 +42,8 @@ namespace ghost {
 void keepmetricsupdated(Metrics *metrics){
   while(1){
     printf("Nice sleep");
-
+    metrics->update_metrics();
+    metrics->update_preemptionmap();
     std::this_thread::sleep_for(std::chrono::milliseconds(100000));
   }
 }
@@ -234,30 +235,36 @@ void CfsScheduler::TaskBlocked(CfsTask* task, const Message& msg) {
 void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   const ghost_msg_payload_task_preempt* payload =
   static_cast<const ghost_msg_payload_task_preempt*>(msg.payload());
-  Cpu cpu = topology()->cpu(task->cpu);
+  // Cpu cpu = topology()->cpu(task->cpu);
   CHECK(task->oncpu());
 
   // RunRequest* req = enclave()->GetRunRequest(cpu);
   // StatusWord::BarrierToken agent_barrier =task->status_word.barrier();
 
   task->preempted = true;
-  if(task->preemptrefusecount){
-    printf("Process:%d will not evict the CPU\n",task->gtid.tid());
-    task->preemptrefusecount--;
-    task->wontevictuntil=absl::GetCurrentTimeNanos()+10000;
-    // req->LocalYield(agent_barrier, /*flags=*/0);
-    // CHECK(req->Commit());
-  } 
+  // if(task->preemptrefusecount){
+  //   printf("Process:%d will not evict the CPU\n",task->gtid.tid());
+  //   task->preemptrefusecount--;
+  //   task->wontevictuntil=absl::GetCurrentTimeNanos()+10000;
+  // req->LocalYield(agent_barrier, /*flags=*/0);
+  // CHECK(req->Commit());
+  // } 
   
-  if(task->wontevictuntil>absl::GetCurrentTimeNanos()) {
-    printf("Here?");
-    // req->LocalYield(agent_barrier, /*flags=*/0);
-    // CHECK(req->Commit());
+  // if(task->wontevictuntil>absl::GetCurrentTimeNanos()) {
+  //   printf("Here?");
+  //     TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
+  //     CpuState* cs = cpu_state_of(task);
+  //     task->prio_boost=true;
+  //     cs->run_queue.PutPrevTask(task);
+  // } 
+  printf("Premption pid:%d",task->gtid.tid());
+  if(!metrics.preempt_by_pid(task->gtid.tid())){
       TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
       CpuState* cs = cpu_state_of(task);
       task->prio_boost=true;
       cs->run_queue.PutPrevTask(task);
-  } 
+
+  }
   else {
         printf("Process:%d allowed itself to be evicted\n",task->gtid.tid());
         TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);

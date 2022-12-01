@@ -16,8 +16,10 @@ class Metrics{
     std::unordered_map<std::string,int> specs;
     std::unordered_map<std::string,int> all_metrics;
     std::unordered_map<int,std::unordered_map<std::string,int>> pid_metrics;
-    std::unordered_map<int,std::unordered_map<std::string,std::unordered_map<std::string,int>>> pid_task_metrics;
+    // std::unordered_map<int,std::unordered_map<std::string,std::unordered_map<std::string,int>>> pid_task_metrics;
     std::unordered_map<int,bool> allow_preemption;
+    bool general_preemption=true;
+    std::vector<std::string> syscalls;
 
     std::vector<std::string> split (const std::string &s, char delim) {
             std::vector<std::string> result;
@@ -58,6 +60,9 @@ class Metrics{
                                     continue;
                                 }
                                 std::vector<std::string> tokens=split(tp,',');
+                                if(specs.find(tokens[0])==specs.end()){
+                                    syscalls.push_back(tokens[0]);
+                                }
                                 specs[tokens[0]]=std::stoi(tokens[1]);
                             }
                             infile.close();
@@ -66,6 +71,29 @@ class Metrics{
                             printf("File not found!");
                         }
                     return specs;
+            }
+
+            bool compute_preempt_by_state(std::unordered_map<std::string,int> syscall_count){
+                for (auto& it: syscalls) {
+                    if(specs[it]>syscall_count[it]){
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            void update_preemptionmap(){
+                    general_preemption=compute_preempt_by_state(all_metrics);
+                    for (auto& it: pid_metrics) {
+                        allow_preemption[it.first]=compute_preempt_by_state(pid_metrics[it.first]);
+                    }
+            }
+
+            bool preempt_by_pid(int pid){
+                if(allow_preemption.find(pid)==allow_preemption.end()){
+                    return true;
+                }
+                return allow_preemption[pid];
             }
 
             void all_metrics_read(std::string metrics){
@@ -95,10 +123,15 @@ class Metrics{
                     }
                  }
                     void init_metrics(){
+                                general_preemption=true;
                                 specs=spec_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/specFile.spec");
                                 for (auto& it: specs) {
                                     printf("%s : %d", it.first.c_str(), it.second);
                                 }
+                        }
+                    
+
+                        void update_metrics(){
 
                                 all_metrics_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
                                 for (auto& it: specs) {
@@ -118,9 +151,6 @@ class Metrics{
 
                                     }
                                 }
-                        }
-
-                        void update_metrics(){
 
                         }
             };

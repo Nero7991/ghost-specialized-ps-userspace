@@ -1,3 +1,4 @@
-simple_exp
-read,12
-write,10
+name,mysql
+write,5
+read,5
+futex,150

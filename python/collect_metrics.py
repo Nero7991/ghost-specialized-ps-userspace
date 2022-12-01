@@ -19,7 +19,7 @@ name = ""
 
 # Read spec file to determine the syscalls of interest
 try:
-    f = open("../spec_files/simple_exp_spec.csv")
+    f = open("../schedulers/cfs/specFile.spec")
     lines = f.readlines()
     if(len(lines) > 0):
         for i, line in enumerate(lines):
@@ -121,7 +121,8 @@ try:
             calls_by_task_pid={}
 
             print(textbuf)
-            f = open("../metrics/"+ name + ".csv", "w")
+            # f = open("../metrics/"+ name + ".csv", "w")
+            f = open("../schedulers/cfs/metrics.csv", "w")
             f.write(textbuf)
             f.close()
             last_time = time.time()
