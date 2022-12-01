@@ -1,0 +1,12 @@
+12
+ALL,write,8,0
+PID,1688,write,1
+PID,1731,write,0
+PID,1732,write,0
+PID,1733,write,2
+PID,1734,write,0
+TASK,1688,node,write,1
+TASK,1731,node,write,0
+TASK,1732,node,write,0
+TASK,1733,node,write,2
+TASK,1734,node,write,0

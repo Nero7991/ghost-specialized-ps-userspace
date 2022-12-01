@@ -34,6 +34,13 @@ bpf_linkopts = [
 ]
 
 cc_library(
+    name = "metrics",
+    srcs = [
+        "lib/metrics.h",
+    ]
+)
+
+cc_library(
     name = "agent",
     srcs = [
         "bpf/user/agent.c",
@@ -69,6 +76,13 @@ cc_library(
     ],
 )
 
+cc_library(
+    name="python",
+    srcs=[
+        "python/collect_metircs.py"
+    ],
+)
+
 cc_binary(
     name = "agent_cfs",
     srcs = [
@@ -81,6 +95,7 @@ cc_binary(
         ":agent",
         ":base",
         ":shared",
+        ":metrics",
         "@com_google_absl//absl/debugging:symbolize",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings",
