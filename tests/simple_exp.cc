@@ -23,11 +23,41 @@ void SimpleExp() {
   printf("\nStarting simple worker\n");
   GhostThread t(GhostThread::KernelScheduler::kGhost, [] {
     printf("%d",getpid());
-    fprintf(stderr, "hello world!\n");
-    absl::SleepFor(absl::Milliseconds(10));
-    fprintf(stderr, "fantastic nap!\n");
+    // while(1){
+    //   fprintf(stderr, "hello world!\n");
+    //   absl::SleepFor(absl::Milliseconds(10));
+    //   fprintf(stderr, "fantastic nap!\n");
+    //   int fd = open( "/home/ocollaco/ghost-specialized-ps-userspace/tests/file", O_RDONLY );
+    //   if( fd == -1 )
+    //   {
+    //       perror( "open()" );
+    //       close( fd );
+    //       exit( 1 );
+    //   }
+
+    //   char buffer[ 100 ];
+    //   ssize_t read_byte;
+
+    //   if( ( read_byte = read( fd, buffer, 100 ) ) == -1 )
+    //   {
+    //       perror( "read()" );
+    //       close( fd );
+    //       exit( 1 );
+    //   }
+
+    //   if( write( STDOUT_FILENO, buffer, read_byte ) == -1 )
+    //   {
+    //       perror( "write()" );
+    //       close( fd );
+    //       exit( 1 );
+    //   }
+    //   close( fd );
+    //}
     // Verify that a ghost thread implicitly clones itself in the ghost
     // scheduling class.
+
+   
+
     std::thread t2([] {
       CHECK_EQ(sched_getscheduler(/*pid=*/0), SCHED_GHOST);
     });

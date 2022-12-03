@@ -22,6 +22,8 @@ class Metrics{
     std::unordered_map<int,int64_t> pid_metric_staleness;
     bool general_preemption=true;
     std::vector<std::string> syscalls;
+    //std::filesystem fs;
+    std::string current_path;
 
     std::vector<std::string> split (const std::string &s, char delim) {
             std::vector<std::string> result;
@@ -138,8 +140,10 @@ class Metrics{
                     }
                  }
                     void init_metrics(){
+                                current_path = std::filesystem::current_path();
+                                printf("Current path : %s", current_path.c_str());
                                 general_preemption=true;
-                                specs=spec_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/specFile.spec");
+                                specs=spec_read("/home/ocollaco/ghost-specialized-ps-userspace/schedulers/cfs/specFile.spec");
                                 for (auto& it: specs) {
                                     printf("%s : %d", it.first.c_str(), it.second);
                                 }
@@ -148,7 +152,7 @@ class Metrics{
 
                         void update_metrics(){
 
-                                all_metrics_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
+                                all_metrics_read("/home/ocollaco/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
                                 // for (auto& it: specs) {
                                 //     //cout << it.first.c_str()<<it.second<<endl;
                                 //     printf("%s : %d", it.first.c_str(), it.second);

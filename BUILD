@@ -211,6 +211,19 @@ cc_binary(
 )
 
 cc_binary(
+    name = "simple_server",
+    srcs = [
+        "tests/simple_server.cc",
+    ],
+    copts = compiler_flags,
+    deps = [
+        ":base",
+        ":ghost",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_binary(
     name = "simple_edf",
     srcs = [
         "tests/simple_edf.cc",
