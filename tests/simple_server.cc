@@ -28,6 +28,7 @@
 // A series of simple tests for ghOSt schedulers.
 
 #define PORT 8081
+#define SERVE_PATH  "/home/ocollaco/ghost-specialized-ps-userspace/tests"
 #define INDEX_ABS_PATH "/home/ocollaco/ghost-specialized-ps-userspace/tests/index.html"
 
 
@@ -173,15 +174,15 @@ void SimpleExp() {
                 if(strlen(parse_string) <= 1){
                     //case that the parse_string = "/"  --> Send index.html file
                     //write(new_socket , httpHeader , strlen(httpHeader));
-                    char path_head[500] = "";
-                    strcat(path_head, INDEX_ABS_PATH);
+                    char path_head[500] = SERVE_PATH;
+                    strcat(path_head, "/index.html");
                     strcat(copy_head, "Content-Type: text/html\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
                 }
                 else if ((parse_ext[0] == 'j' && parse_ext[1] == 'p' && parse_ext[2] == 'g') || (parse_ext[0] == 'J' && parse_ext[1] == 'P' && parse_ext[2] == 'G'))
                 {
                     //send image to client
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: image/jpeg\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -189,7 +190,7 @@ void SimpleExp() {
                 else if (parse_ext[0] == 'i' && parse_ext[1] == 'c' && parse_ext[2] == 'o')
                 {
                     //https://www.cisco.com/c/en/us/support/docs/security/web-security-appliance/117995-qna-wsa-00.html
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, "/img/favicon.png");
                     strcat(copy_head, "Content-Type: image/vnd.microsoft.icon\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -197,7 +198,7 @@ void SimpleExp() {
                 else if (parse_ext[0] == 't' && parse_ext[1] == 't' && parse_ext[2] == 'f')
                 {
                     //font type, to display icon from FontAwesome
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: font/ttf\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -205,7 +206,7 @@ void SimpleExp() {
                 else if (parse_ext[strlen(parse_ext)-2] == 'j' && parse_ext[strlen(parse_ext)-1] == 's')
                 {
                     //javascript
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: text/javascript\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -213,7 +214,7 @@ void SimpleExp() {
                 else if (parse_ext[strlen(parse_ext)-3] == 'c' && parse_ext[strlen(parse_ext)-2] == 's' && parse_ext[strlen(parse_ext)-1] == 's')
                 {
                     //css
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: text/css\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -221,7 +222,7 @@ void SimpleExp() {
                 else if (parse_ext[0] == 'w' && parse_ext[1] == 'o' && parse_ext[2] == 'f')
                 {
                     //Web Open Font Format woff and woff2
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: font/woff\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -229,7 +230,7 @@ void SimpleExp() {
                 else if (parse_ext[0] == 'm' && parse_ext[1] == '3' && parse_ext[2] == 'u' && parse_ext[3] == '8')
                 {
                     //Web Open m3u8
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: application/vnd.apple.mpegurl\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
@@ -237,14 +238,14 @@ void SimpleExp() {
                 else if (parse_ext[0] == 't' && parse_ext[1] == 's')
                 {
                     //Web Open ts
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: video/mp2t\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
                 }
                 else{
                     //send other file 
-                    char path_head[500] = ".";
+                    char path_head[500] = SERVE_PATH;
                     strcat(path_head, parse_string);
                     strcat(copy_head, "Content-Type: text/plain\r\n\r\n");
                     send_message(new_socket, path_head, copy_head);
