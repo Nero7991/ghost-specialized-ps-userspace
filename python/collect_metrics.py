@@ -114,10 +114,10 @@ try:
                     textbuf += "PID,"+str(pid) +","+syscall + "," + str(call_count) + "\n"
             calls_by_pid={}
 
-            for pid,calls_by_task in calls_by_task_pid.items():
-                for task, task_map in calls_by_task.items():
-                    for syscall,call_count in task_map.items():
-                        textbuf += "TASK,"+str(pid)+","+str(task) +","+syscall + "," + str(call_count) + "\n"
+            # for pid,calls_by_task in calls_by_task_pid.items():
+            #     for task, task_map in calls_by_task.items():
+            #         for syscall,call_count in task_map.items():
+            #             textbuf += "TASK,"+str(pid)+","+str(task) +","+syscall + "," + str(call_count) + "\n"
             calls_by_task_pid={}
 
             print(textbuf)

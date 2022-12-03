@@ -43,7 +43,7 @@ void keepmetricsupdated(Metrics *metrics){
   while(1){
     metrics->update_metrics();
     metrics->update_preemptionmap();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -87,8 +87,8 @@ void CfsScheduler::DumpState(const Cpu& cpu, int flags) {
 
   const CfsTask* current = cs->current;
   const CfsRq* rq = &cs->run_queue;
-  absl::FPrintF(stderr, "SchedState[%d]: %s rq_l=%lu\n", cpu.id(),
-                current ? current->gtid.describe() : "none", rq->Size());
+  // absl::FPrintF(stderr, "SchedState[%d]: %s rq_l=%lu\n", cpu.id(),
+  //               current ? current->gtid.describe() : "none", rq->Size());
 }
 
 void CfsScheduler::EnclaveReady() {
@@ -254,12 +254,13 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   //     cs->run_queue.PutPrevTask(task);
   // } 
   // printf("Premption pid:%d",task->gtid.tid());
+  printf("Decision to be made for %d",task->gtid.tid());
   if(!metrics.preempt_by_pid(task->gtid.tid())){
       TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
       CpuState* cs = cpu_state_of(task);
       task->prio_boost=true;
       cs->run_queue.PutPrevTask(task);
-      printf("Process:%d refused to be evicted\n",task->gtid.tid());
+      printf("%d,%u",task->gtid.tid(),absl::Now());
   }
   else {
         TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
