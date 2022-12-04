@@ -43,7 +43,7 @@ void keepmetricsupdated(Metrics *metrics){
   while(1){
     metrics->update_metrics();
     metrics->update_preemptionmap();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
@@ -254,13 +254,13 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   //     cs->run_queue.PutPrevTask(task);
   // } 
   // printf("Premption pid:%d",task->gtid.tid());
-  printf("Decision to be made for %d",task->gtid.tid());
+  //printf("Decision to be made for %d",task->gtid.tid());
   if(!metrics.preempt_by_pid(task->gtid.tid())){
       TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
       CpuState* cs = cpu_state_of(task);
       task->prio_boost=true;
       cs->run_queue.PutPrevTask(task);
-      printf("%d,%u",task->gtid.tid(),absl::Now());
+      printf("%d,%lu\n",task->gtid.tid(),absl::GetCurrentTimeNanos());
   }
   else {
         TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
