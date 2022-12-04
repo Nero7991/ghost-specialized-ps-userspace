@@ -3,6 +3,7 @@ from os import system
 import time
 import sys
 
+
 # define BPF program
 prog = """
 int syscall_event(void *ctx) {
@@ -15,6 +16,7 @@ syscalls = []
 thresholds = []
 calls = []
 progs = []
+pids={}
 name = ""
 
 # Read spec file to determine the syscalls of interest
@@ -34,6 +36,16 @@ try:
 
 except Exception as e:
     print(e)
+
+def fillthelatestpids():
+    try:
+        f = open("../schedulers/cfs/pids.details")
+        lines=f.readlines()
+        for line in lines:
+            pids[int(line)]=1
+
+    except Exception as e:
+        print(e)
     
 # Print the syscalls and thresholds read from the spec file
 print("name = " + name)
@@ -63,7 +75,7 @@ try:
                 process_location = f.readlines()
                 if(len(process_location) > 0):
                     # check if this trace belongs to process of interest
-                    if((name in process_location[0]) and syscalls[i] in msg):
+                    if(((name in process_location[0]) or pid in pids) and syscalls[i] in msg):
                         calls[i]+=1
                         pid_dict={}
                         calls_by_task={}
@@ -119,6 +131,7 @@ try:
             #         for syscall,call_count in task_map.items():
             #             textbuf += "TASK,"+str(pid)+","+str(task) +","+syscall + "," + str(call_count) + "\n"
             calls_by_task_pid={}
+            fillthelatestpids()
 
             print(textbuf)
             # f = open("../metrics/"+ name + ".csv", "w")

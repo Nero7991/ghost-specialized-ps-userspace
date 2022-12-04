@@ -18,12 +18,15 @@ class Metrics{
     std::unordered_map<int,std::unordered_map<std::string,int>> pid_metrics;
     // std::unordered_map<int,std::unordered_map<std::string,std::unordered_map<std::string,int>>> pid_task_metrics;
     std::unordered_map<int,bool> allow_preemption;
+    std::unordered_set<int> unique_pids;
 
     std::unordered_map<int,int64_t> pid_metric_staleness;
     bool general_preemption=true;
     std::vector<std::string> syscalls;
     //std::filesystem fs;
     std::string current_path;
+
+
 
     std::vector<std::string> split (const std::string &s, char delim) {
             std::vector<std::string> result;
@@ -37,20 +40,34 @@ class Metrics{
             return result;
     }
     public:
-
-            std::unordered_map<std::string,int> spec_read(){
-                    std::ifstream infile("specFile.spec");
-                    std::unordered_map<std::string,int> specs;
-                    if (infile.is_open()){
-                        std::string tp;
-                        while(getline(infile, tp)){
-                            std::vector<std::string> tokens=split(tp,',');
-                            specs[tokens[0]]=std::stoi(tokens[1]);
-                        }
-                        infile.close();
-                }
-                return specs;
+            void addpidtoset(int pid){
+                unique_pids.insert(pid);
             }
+
+            void writepidstofile(){
+                    std::ofstream myfile("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/pids.details");
+                    if(myfile.is_open())
+                    {
+                        for(auto& it:unique_pids){
+                            myfile<<it<< std::endl;
+                        }
+                        myfile.close();
+                    }
+            }
+
+            // std::unordered_map<std::string,int> spec_read(){
+            //         std::ifstream infile("specFile.spec");
+            //         std::unordered_map<std::string,int> specs;
+            //         if (infile.is_open()){
+            //             std::string tp;
+            //             while(getline(infile, tp)){
+            //                 std::vector<std::string> tokens=split(tp,',');
+            //                 specs[tokens[0]]=std::stoi(tokens[1]);
+            //             }
+            //             infile.close();
+            //     }
+            //     return specs;
+            // }
 
             std::unordered_map<std::string,int> spec_read(std::string specfilename){
                         std::ifstream infile(specfilename);
@@ -143,7 +160,7 @@ class Metrics{
                                 current_path = std::filesystem::current_path();
                                 printf("Current path : %s", current_path.c_str());
                                 general_preemption=true;
-                                specs=spec_read("/home/ocollaco/ghost-specialized-ps-userspace/schedulers/cfs/specFile.spec");
+                                specs=spec_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/specFile.spec");
                                 for (auto& it: specs) {
                                     printf("%s : %d", it.first.c_str(), it.second);
                                 }
@@ -152,7 +169,7 @@ class Metrics{
 
                         void update_metrics(){
 
-                                all_metrics_read("/home/ocollaco/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
+                                all_metrics_read("/home/hravi/ghost-specialized-ps-userspace/schedulers/cfs/metrics.csv");
                                 // for (auto& it: specs) {
                                 //     //cout << it.first.c_str()<<it.second<<endl;
                                 //     printf("%s : %d", it.first.c_str(), it.second);

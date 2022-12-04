@@ -28,8 +28,8 @@
 // A series of simple tests for ghOSt schedulers.
 
 #define PORT 8081
-#define SERVE_PATH  "/home/ocollaco/ghost-specialized-ps-userspace/tests"
-#define INDEX_ABS_PATH "/home/ocollaco/ghost-specialized-ps-userspace/tests/index.html"
+#define SERVE_PATH  "/home/hravi/ghost-specialized-ps-userspace/tests"
+#define INDEX_ABS_PATH "/home/hravi/ghost-specialized-ps-userspace/tests/index.html"
 
 
 char* parse(char line[], const char symbol[]);

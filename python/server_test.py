@@ -18,16 +18,17 @@ print(x.status_code)
 
 text_buf = ""
 start_time = 0
-duration = 10
+duration = 20
 counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
 
 def task(id):
     global start_time, counts, files_strs, duration, text_buf
     while(time.time() - start_time < duration):
         time1 = perf_counter()
+        requestTime=time.time()
         x = requests.get('http://localhost:8081/file_' + files_strs[id%10] + '.txt')
         if(x.status_code == 200):
-            file_text_bufs[id%10] += files_strs[id%10] + "," + str(perf_counter() - time1) + "\n"
+            file_text_bufs[id%10] += str(requestTime)+","+ files_strs[id%10] + "," + str(perf_counter() - time1) + "\n"
             counts[id%10] += 1
          
 

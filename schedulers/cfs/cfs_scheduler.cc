@@ -43,6 +43,7 @@ void keepmetricsupdated(Metrics *metrics){
   while(1){
     metrics->update_metrics();
     metrics->update_preemptionmap();
+    metrics->writepidstofile();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
@@ -85,8 +86,8 @@ void CfsScheduler::DumpState(const Cpu& cpu, int flags) {
     return;
   }
 
-  const CfsTask* current = cs->current;
-  const CfsRq* rq = &cs->run_queue;
+  // const CfsTask* current = cs->current;
+  // const CfsRq* rq = &cs->run_queue;
   // absl::FPrintF(stderr, "SchedState[%d]: %s rq_l=%lu\n", cpu.id(),
   //               current ? current->gtid.describe() : "none", rq->Size());
 }
@@ -233,6 +234,8 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   static_cast<const ghost_msg_payload_task_preempt*>(msg.payload());
   // Cpu cpu = topology()->cpu(task->cpu);
   CHECK(task->oncpu());
+  int tid=task->gtid.tid();
+  metrics.addpidtoset(tid);
 
   // RunRequest* req = enclave()->GetRunRequest(cpu);
   // StatusWord::BarrierToken agent_barrier =task->status_word.barrier();
@@ -255,12 +258,12 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
   // } 
   // printf("Premption pid:%d",task->gtid.tid());
   //printf("Decision to be made for %d",task->gtid.tid());
-  if(!metrics.preempt_by_pid(task->gtid.tid())){
+  if(!metrics.preempt_by_pid(tid)){
       TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
       CpuState* cs = cpu_state_of(task);
       task->prio_boost=true;
       cs->run_queue.PutPrevTask(task);
-      printf("%d,%lu\n",task->gtid.tid(),absl::GetCurrentTimeNanos());
+      printf("%d,%lu\n",tid,absl::GetCurrentTimeNanos());
   }
   else {
         TaskOffCpu(task, /*blocked=*/false, payload->from_switchto);
