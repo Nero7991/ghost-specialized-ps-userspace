@@ -113,7 +113,7 @@ try:
             #    print(e)
                 continue
         
-        if(time.time() - last_time > 1):
+        if(time.time() - last_time > 0.25):
             textbuf = name + "\n"
             for i, syscall in enumerate(syscalls):
                 if(calls[i] > thresholds[i]):

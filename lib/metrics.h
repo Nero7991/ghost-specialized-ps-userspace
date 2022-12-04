@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <filesystem>
+#include<unordered_set>
 
 
 namespace ghost{
@@ -42,6 +43,16 @@ class Metrics{
     public:
             void addpidtoset(int pid){
                 unique_pids.insert(pid);
+            }
+
+            void writepids_time(int pid, int64_t time){
+                std::ofstream outfile;
+                outfile.open("/home/hravi/ghost-specialized-ps-userspace/schedulers/recorded_metrics/preemption_timeline/cfs/4_cores/metrics.info", std::ios_base::app); // append instead of overwrite
+                if(!outfile.is_open()){
+                    printf("hmm");
+                    return;
+                }
+                outfile<<pid<<","<<time<<std::endl;
             }
 
             void writepidstofile(){
@@ -150,7 +161,7 @@ class Metrics{
                                         pid_metrics[pid]=syscall_count_by_pid;
                                     }
                                     pid_metrics[pid][tokens[2]]=std::stoi(tokens[3]);
-                                    pid_metric_staleness[pid]= absl::GetCurrentTimeNanos()+1000000000000;
+                                    pid_metric_staleness[pid]= absl::GetCurrentTimeNanos()+100000000000;
                                 }
                             }
                             infile.close();

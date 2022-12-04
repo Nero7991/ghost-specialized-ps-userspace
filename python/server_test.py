@@ -13,7 +13,6 @@ files_strs = ["1k","2k","4k","10k","50k","100k","500k","1m","2m","4m"]
 file_text_bufs = ["", "", "", "", "", "", "", "", "", ""]
 
 x = requests.get('http://localhost:8081/file_1k.txt')
-print(x.status_code)
 
 
 text_buf = ""
@@ -36,7 +35,7 @@ def task(id):
 # create and start 10 threads
 start_time = time.time()
 threads = []
-for n in range(0, 19):
+for n in range(0, 40):
     t = Thread(target=task, args=(n,))
     threads.append(t)
     t.start()
