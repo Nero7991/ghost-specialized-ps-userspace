@@ -44,7 +44,7 @@ void keepmetricsupdated(Metrics *metrics){
     metrics->update_metrics();
     metrics->update_preemptionmap();
     metrics->writepidstofile();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -263,6 +263,7 @@ void CfsScheduler::TaskPreempted(CfsTask* task, const Message& msg) {
       CpuState* cs = cpu_state_of(task);
       task->prio_boost=true;
       cs->run_queue.PutPrevTask(task);
+      metrics.writepids_time(tid,absl::GetCurrentTimeNanos());
       printf("%d,%lu\n",tid,absl::GetCurrentTimeNanos());
   }
   else {
