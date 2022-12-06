@@ -1,4 +1,8 @@
-# ghOSt: Fast &amp; Flexible User-Space Delegation of Linux Scheduling
+# Specialized Process Schedulers using ghOSt
+
+This repo has the code for defiant user-space preemption, based on current application metrics.
+This was done as a part of CS/ECE5414 for Virginia Tech, for Fall 2022 semester. The project is 
+titled "Specialized Process Schedulers using ghOSt"
 
 ghOSt is a general-purpose delegation of scheduling policy implemented on top of
 the Linux kernel. The ghOSt framework provides a rich API that receives
@@ -12,13 +16,12 @@ performant framework for delegation of thread scheduling policy to userspace
 processes that enables policy optimization, non-disruptive upgrades, and fault
 isolation.
 
-[SOSP '21 Paper](https://dl.acm.org/doi/10.1145/3477132.3483542)\
-[SOSP '21 Talk](https://youtu.be/j4ABe4dsbIY)
-
 The ghOSt kernel is [here](https://www.github.com/google/ghost-kernel). You must
 compile and run the userspace component on the ghOSt kernel.
 
-This is not an officially supported Google product.
+
+[SOSP '21 Paper](https://dl.acm.org/doi/10.1145/3477132.3483542)\
+[SOSP '21 Talk](https://youtu.be/j4ABe4dsbIY)
 
 ---
 
@@ -59,8 +62,7 @@ with an individual target name, such as `agent_shinjuku`.
 ### LKP Project work metrics code
 
 - `python/`
-  - The collect_metrics.py program prints the number of sys_read and sys_write calls per second made 
-    by the mysql application
+  - The collect_metrics.py program writes to schedulers/cfs/metrics.csv for all the mentioned system calls in schedulers/cfs/specFile.spec for the pids in pids.details 
 
 
 
@@ -135,7 +137,7 @@ command line argument value as necessary. For example, if you have an 8-core
 machine and you wish to schedule ghOSt tasks on all cores, then pass `0-7` to
 `--ghost_cpus`.
 
-To run the CFS scheduler with unfair preemption, build the cfs_scheduler
+To use the CFS scheduler with unfair preemption, first build the cfs_scheduler using
 
 ```
 bazel build -c opt agent_cfs
@@ -147,13 +149,19 @@ bazel-bin/agent_cfs --ghost_cpus 0-1 --spec_file specfile.spec
 ```
 
 
-4. Launch `simple_exp`:
+4. Launch `simple_server`:
 ```
-bazel-bin/simple_exp
+bazel-bin/simple_server
 ```
-`simple_exp` will launch pthreads. These pthreads in turn will move themselves
-into the ghOSt scheduling class and thus will be scheduled by the ghOSt
-scheduler. When `simple_exp` has finished running all tests, it will exit.
+`simple_server` will launch a http server using ghOSt. It can be stress tested by running the server_test.py script
+```
+python python/server_test.py
+```
 
-5. Use `Ctrl-C` to send a `SIGINT` signal to `fifo_per_cpu_agent` to get it to
+To compile the simple_server use the following bazel command
+```
+sudo bazel build -c opt simple_server
+```
+
+5. Use `Ctrl-C` to send a `SIGINT` signal to `agent_cfs` to get it to
 stop.
